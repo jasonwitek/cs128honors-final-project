@@ -5,7 +5,7 @@ Jason Witek (jrwitek2) Alexander Tseng (aetseng2)
 
 Project Introduction:
 
-We will be implementing a Fast Fourier Transform, an algorithm that breaks a sound wave down into its individual sine and cosine wave functions for each frequency. It is especially useful for calculating the Discrete Fourier Transform (DFT), which is a function that maps each wave to the number of occurences. It can be used to compress audio signals and apply transformations. We will specifically be implementing the "Cooley-Tukey" Algorithm.
+We will be implementing a Fast Fourier Transform, an algorithm that breaks a sound wave down (or any vector) into its individual sine and cosine wave functions for each frequency. It is also the faster version of the Discrete Fourier Transform (DFT), which is a function that maps each frequency to a complex number that represents its magnitude and phase. It can be used to compress audio signals and apply noise filtering and other effects. We will specifically be implementing the "Cooley-Tukey" Algorithm.
 
 Technical Overview:
 
@@ -66,12 +66,21 @@ FFT Computation:
 
 Please list what you plan to have finished by each checkpoint. These are meant to be goals to keep your project on track. We will NOT grade your checkpoints on how much you have completed, but on whether or not you’ve made some progress. 
 
+Checkpoint 1 (4/13):
+Have our Helper functions completed and num-complex crate correctly implemented (Steps 1-3)
+Start working on the recursive approach to FFT Computation
+
+Checkpoint 2 (4/27):
+Have our Recursive implementaion finished and working correctly
+Be a decent way into making our iterative approach, should be able to finish by Friday (5/1)
+
 Possible Challenges:
 
-Personally this math is very new to me, so I can forsee just some math errors popping up in the code, especially if I am not careful with syntax.
+- This is math I have never seen before, so I can forsee just some math errors popping up in the code, especially if we are not careful with syntax
 
-Please list some of the challenges you foresee running into.
-This can be learning a new crate interface, working with a UI in Rust, etc…
+- Never used a Rust crate before (besides in the lesson) and so that will take some adjusting to
+
+- Also using GitHub routinely in our workflow is something we haven't done much before
 
 References:
 https://cp-algorithms.com/algebra/fft.html
