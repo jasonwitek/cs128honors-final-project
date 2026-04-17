@@ -4,6 +4,8 @@ use num_complex::{Complex, Complex64};
 
 fn main() {
     println!("Hello, world!");
+    // Make way to input data?
+    // Maybe read from csv file if possible
 }
 
 // this will be our main function
@@ -50,4 +52,17 @@ fn splitarray(input_array: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
 // this is the bit reversal
 fn bit_reversal() {
 
+}
+
+// Performs the buttery fly operation, first half of the array is for the evens, second half is for the odds
+// Note how the even index twiddle factors are not used - they will be used in the recursive approach
+fn butterflycomputation(twiddle_factors: (Vec<Complex64>, Vec<Complex64>), odds_evens: (Vec<f64>, Vec<f64>)) -> Vec<Complex64> {
+    let mut computedbutterfly: Vec<Complex64> = vec![];
+    for i in 0..twiddle_factors.0.len() {
+        computedbutterfly.push(Complex { re: odds_evens.1[i], im: 0.0 }  + twiddle_factors.0[i] * Complex { re: odds_evens.0[i], im: 0.0 });
+    }
+    for i in 0..twiddle_factors.0.len() {
+        computedbutterfly.push(Complex { re: odds_evens.1[i], im: 0.0 }  - twiddle_factors.0[i] * Complex { re: odds_evens.0[i], im: 0.0 });
+    }
+    return computedbutterfly;
 }
