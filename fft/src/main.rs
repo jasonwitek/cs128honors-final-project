@@ -49,11 +49,6 @@ fn splitarray(input_array: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
     return (odds, evens);
 }
 
-// this is the bit reversal
-fn bit_reversal() {
-
-}
-
 // Performs the buttery fly operation, first half of the array is for the evens, second half is for the odds
 // Note how the even index twiddle factors are not used - they will be used in the recursive approach
 fn butterflycomputation(twiddle_factors: (Vec<Complex64>, Vec<Complex64>), odds_evens: (Vec<f64>, Vec<f64>)) -> Vec<Complex64> {
@@ -65,4 +60,36 @@ fn butterflycomputation(twiddle_factors: (Vec<Complex64>, Vec<Complex64>), odds_
         computedbutterfly.push(Complex { re: odds_evens.1[i], im: 0.0 }  - twiddle_factors.0[i] * Complex { re: odds_evens.0[i], im: 0.0 });
     }
     return computedbutterfly;
+}
+
+fn bit_reversal(a: &mut Vec<Complex64>) {
+    let n = a.len();
+    let log_n = n.trailing_zeros();
+
+    for i in 0..n {
+        // Compute j = bit-reverse of i using log_n bits
+        let j = reverse_bits(i, log_n);
+
+        if i < j {
+            a.swap(i, j);
+        }
+    }
+
+}
+
+fn reverse_bits(mut num: usize, bit_count: u32) -> usize {
+    let mut result: usize = 0;
+    for i in 0..bit_count {
+        // Shift result left to make room for the next bit
+        result <<= 1;
+
+        // Take the lowest bit of num and put it into result
+        // (num & 1) isolates the last bit: if num=5 (101), num&1 = 1
+        result = result | (num & 1);
+
+        // Shift num right to expose the next bit
+        // After this, num=5 (101) becomes num=2 (10)
+        num >>= 1;
+    }
+    result
 }
