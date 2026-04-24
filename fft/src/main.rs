@@ -3,40 +3,39 @@ use std::{f64::consts::PI, vec};
 use num_complex::{Complex, Complex64};
 
 fn main() {
-    println!("Hello, world!");
-    // Make way to input data?
-    // Maybe read from csv file if possible
+    let test_signal = vec![1.0, 0.0, 0.0, 0.0];
+    let result = fft_recursive(&test_signal);
+    for (i,val) in result.iter().enumerate() {
+        println!("X[{i}] = {:.4} + {:.4}j", val.re, val.im);
+    }
 }
 
 // this will be our main function
 // We should have it return the DFT vector so we can print it out in our main function
-fn fft(input_array: Vec<f64>) -> Vec<Complex64> {
-    let odds_evens = splitarray(input_array);
-    let twiddle_factors: (Vec<Complex64>, Vec<Complex64>) = twiddle_factor((odds_evens.0, odds_evens.1));
+fn fft_iterative(input_array: Vec<f64>){
     todo!();
 }
 
-// this is the twiddle factor helper
-// Takes in a pair of vectors of the pre seperated odd / even indexes,
-// Returns twiddle factors with first being odds and seond being evens
-fn twiddle_factor(oddsevens: (Vec<f64>, Vec<f64>)) -> (Vec<Complex64>, Vec<Complex64>) {
-    let odds: Vec<f64> = oddsevens.0;
-    let evens: Vec<f64> = oddsevens.1;
-    let mut twiddle_odds: Vec<Complex64> = vec![];
-    let mut twiddle_evens: Vec<Complex64> = vec![];
-    for k in 0..odds.len() {
-        let realcomp: f64 = (2.0 * PI * k as f64) / odds.len() as f64;
-        twiddle_odds.push(Complex { re: realcomp.cos() , im: -realcomp.sin() });
+// Our recursive approach, recurses to base case (length of 1) then builds up FFT
+fn fft_recursive(input_array: &[f64]) -> Vec<Complex64> {
+    let n = input_array.len();
+    assert!(n.is_power_of_two(), "Cannot perform Cooley Tukey method on vec of size not 2^n");
+    if n == 1 {
+        return vec![Complex::new(input_array[0], 0.0)];
     }
-    for k in 0..evens.len() {
-        let realcomp: f64 = (2.0 * PI * k as f64) / evens.len() as f64;
-        twiddle_evens.push(Complex { re: realcomp.cos() , im: -realcomp.sin() });
-    }
-    return (twiddle_odds, twiddle_evens);
+
+    let odds_evens = splitarray(input_array);
+
+    let evens_fft = fft_recursive(&odds_evens.1);
+    let odds_fft = fft_recursive(&odds_evens.0);
+
+    let twiddle = twiddle_factor(n);
+
+    butterflycomputation(twiddle, evens_fft, odds_fft)
 }
 
-// This is a temporary splitter function while we work on the iterative approach
-fn splitarray(input_array: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
+// Splitter function for recursive function, 0=odds, 1=evens
+fn splitarray(input_array: &[f64]) -> (Vec<f64>, Vec<f64>) {
     let mut odds: Vec<f64> = vec![];
     let mut evens: Vec<f64> = vec![];
     for i in 0..input_array.len() {
@@ -46,20 +45,30 @@ fn splitarray(input_array: Vec<f64>) -> (Vec<f64>, Vec<f64>) {
             odds.push(input_array[i]);
         }
     }
-    return (odds, evens);
+    (odds, evens)
 }
 
-// Performs the buttery fly operation, first half of the array is for the evens, second half is for the odds
-// Note how the even index twiddle factors are not used - they will be used in the recursive approach
-fn butterflycomputation(twiddle_factors: (Vec<Complex64>, Vec<Complex64>), odds_evens: (Vec<f64>, Vec<f64>)) -> Vec<Complex64> {
-    let mut computedbutterfly: Vec<Complex64> = vec![];
-    for i in 0..twiddle_factors.0.len() {
-        computedbutterfly.push(Complex { re: odds_evens.1[i], im: 0.0 }  + twiddle_factors.0[i] * Complex { re: odds_evens.0[i], im: 0.0 });
+// this is the twiddle factor helper
+// Rewritten since twiddle factors only depend on index, not value
+fn twiddle_factor(n: usize) -> Vec<Complex64> {
+    let mut twiddlers: Vec<Complex64> = vec![];
+    for i in 0..n/2 {
+        let angle: f64 = (2.0 * PI * i as f64) / n as f64;
+        twiddlers.push(Complex { re: angle.cos(), im: -angle.sin() })
     }
-    for i in 0..twiddle_factors.0.len() {
-        computedbutterfly.push(Complex { re: odds_evens.1[i], im: 0.0 }  - twiddle_factors.0[i] * Complex { re: odds_evens.0[i], im: 0.0 });
+    twiddlers
+}
+
+// Performs the butterfly computation, calculates the odd twiddles and then adds or subtracts it to the even one to get the corresponding DFT value
+fn butterflycomputation(twiddle: Vec<Complex64>, even_fft: Vec<Complex64>, odd_fft: Vec<Complex64>) -> Vec<Complex64> {
+    let n = even_fft.len() * 2;
+    let mut computedbutterfly: Vec<Complex64> = vec![Complex {re: 0.0, im: 0.0}; n]; // Makes blank Complex64 size of n
+    for i in 0..n/2 {
+        let odd_twiddle = twiddle[i] * odd_fft[i];
+        computedbutterfly[i] = even_fft[i] + odd_twiddle;
+        computedbutterfly[i + n / 2] = even_fft[i] - odd_twiddle;
     }
-    return computedbutterfly;
+    computedbutterfly
 }
 
 fn bit_reversal(a: &mut Vec<Complex64>) {
