@@ -3,17 +3,56 @@ use std::{f64::consts::PI, vec};
 use num_complex::{Complex, Complex64};
 
 fn main() {
-    let test_signal = vec![1.0, 0.0, 0.0, 0.0];
+    let test_signal = vec![1.0, 2.0, 3.0, 4.0];
     let result = fft_recursive(&test_signal);
     for (i,val) in result.iter().enumerate() {
         println!("X[{i}] = {:.4} + {:.4}j", val.re, val.im);
     }
+    let result2 = fft_iterative(test_signal);
+    for (i,val) in result2.iter().enumerate() {
+        println!("X[{i}] = {:.4} + {:.4}j", val.re, val.im);
+    }
+
+    // How to read the output:
+
+    // Each index represents a frequency, with index 0 being the average of all the frequencies
+    // Each complex number then tells you information about that frequency
+    // With the magnitude being: the sqrt of (real component ^2 + imaginary component ^2)
+    // And the phase (or shift of the sin wave) being arctan of (real / imaginary) without rounding to the first quadrant.
+    
 }
 
 // this will be our main function
 // We should have it return the DFT vector so we can print it out in our main function
-fn fft_iterative(input_array: Vec<f64>){
-    todo!();
+fn fft_iterative(input_array: Vec<f64>) -> Vec<Complex64> {
+    let n = input_array.len();
+    assert!(n.is_power_of_two(), "Cannot perform Cooley Tukey method on vec of size not 2^n");
+
+    let mut output: Vec<Complex64> = vec![];
+    for i in 0..n {
+        output.push(Complex { re: input_array[i], im: 0.0 });
+    }
+
+    bit_reversal(&mut output);
+
+    println!("{:?}", output);
+
+    let mut len = 2; // 2^1, will double every time
+    while len <= n { // keep going till full length
+        let twiddle = twiddle_factor(len);
+
+        for block_start in (0..n).step_by(len) {
+            for i in 0..len/2 {
+                let even = output[block_start + i];
+                let odd = twiddle[i] * output[block_start + i + len / 2];
+
+                output[block_start + i] = even + odd;
+                output[block_start + i + len / 2] = even - odd;
+            }
+        }
+        len *= 2;
+    }
+    output
 }
 
 // Our recursive approach, recurses to base case (length of 1) then builds up FFT
