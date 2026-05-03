@@ -1,25 +1,66 @@
 use std::{f64::consts::PI, vec};
-
+use std::io::{self};
 use num_complex::{Complex, Complex64};
 
 fn main() {
-    let test_signal = vec![1.0, 2.0, 3.0, 4.0];
-    let result = fft_recursive(&test_signal);
-    for (i,val) in result.iter().enumerate() {
+    println!("Enter in single-spaced array vlues (or one per line");
+    println!("Type 'done' when finished");
+
+    let input = read_input();
+    if input.is_empty() {
+        eprintln!("input must not be empty");
+        return;
+    }
+
+    let n = input.len();
+
+    if !n.is_power_of_two() {
+        eprintln!("Input length must be power of two");
+        return;
+    }
+
+    println!("\nRecursive FFT:");
+    let result1 = fft_recursive(&input);
+    for (i,val) in result1.iter().enumerate() {
         println!("X[{i}] = {:.4} + {:.4}j", val.re, val.im);
     }
-    let result2 = fft_iterative(test_signal);
+
+    println!("\nIterative FFT:");
+    let result2 = fft_iterative(input);
     for (i,val) in result2.iter().enumerate() {
         println!("X[{i}] = {:.4} + {:.4}j", val.re, val.im);
     }
 
-    // How to read the output:
+    println!("\nHow to read the output:");
+    println!(" Index 0 = sum of all values");
+    println!(" Each complex number: magnitude = sqrt(re² + im²), phase = arctan(im, re)");
+}
 
-    // Each index represents a frequency, with index 0 being the average of all the frequencies
-    // Each complex number then tells you information about that frequency
-    // With the magnitude being: the sqrt of (real component ^2 + imaginary component ^2)
-    // And the phase (or shift of the sin wave) being arctan of (real / imaginary) without rounding to the first quadrant.
-    
+fn read_input() -> Vec<f64> {
+    let mut values: Vec<f64> = vec![];
+
+    loop {
+        let mut line = String::new();
+        io::stdin().read_line(&mut line).expect("Can't read line");
+
+        let trim = line.trim();
+
+        if trim.is_empty() {
+            continue;
+        }
+
+        if trim.eq_ignore_ascii_case("done") {
+            break;
+        }
+
+        for num in trim.split_whitespace() {
+            match num.parse::<f64>() {
+                Ok(val) => values.push(val),
+                Err(_) => eprintln!("Invalid value, skipping: '{}'", num)
+            }
+        }
+    }
+    return values;
 }
 
 // this will be our main function
@@ -34,8 +75,6 @@ fn fft_iterative(input_array: Vec<f64>) -> Vec<Complex64> {
     }
 
     bit_reversal(&mut output);
-
-    println!("{:?}", output);
 
     let mut len = 2; // 2^1, will double every time
     while len <= n { // keep going till full length
@@ -127,7 +166,7 @@ fn bit_reversal(a: &mut Vec<Complex64>) {
 
 fn reverse_bits(mut num: usize, bit_count: u32) -> usize {
     let mut result: usize = 0;
-    for i in 0..bit_count {
+    for _i in 0..bit_count {
         // Shift result left to make room for the next bit
         result <<= 1;
 
