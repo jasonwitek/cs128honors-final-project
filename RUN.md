@@ -4,7 +4,7 @@ How to run:
 
 2. Navigate to the project directory and build and run with:
 
-cd cs182honors-final-project
+cd cs182honors-final-project/fft
 
 cargo run
 
